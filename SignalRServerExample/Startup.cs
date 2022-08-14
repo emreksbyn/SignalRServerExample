@@ -42,6 +42,7 @@ namespace SignalRServerExample
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapHub<MyHub>("/myhub");
+                endpoints.MapHub<MessageHub>("/messagehub");
                 // Controllerdan yapilan attribute tabanli routing in eslestirmesi
                 endpoints.MapControllers();
             });
