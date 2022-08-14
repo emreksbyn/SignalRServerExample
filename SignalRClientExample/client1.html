@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="signalr.min.js"></script>
+    <script src="jquery.min.js"></script>
+
+    <script>
+        $(document).ready(() => {
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("http://localhost:5000/messagehub")
+                // default 0 - 2000 - 10000 - 30000 --> baglanti var fakat kopmus
+                .withAutomaticReconnect([1000, 1000, 2000])
+                .build();
+
+            // Baglanti hic kurulmadigi durumlarda bu fonksiyon kullanilir.
+            async function start() {
+                try {
+                    await connection.start();
+                } catch (error) {
+                    setTimeout(() => start(), 2000);
+                }
+            }
+
+            // connection.start();
+            start();
+
+            function animation() {
+                durum.fadeIn(2000, () => {
+                    setTimeout(() => {
+                        durum.fadeOut(2000);
+                    }, 2000)
+                });
+            }
+
+            const durum = $("#durum");
+
+
+            connection.onreconnecting(error => {
+                durum.css("background-color", "blue");
+                durum.css("color", "white");
+                durum.html("Baglanti kuruluyor...");
+                animation();
+            });
+
+            connection.onreconnected(connectionId => {
+                durum.css("background-color", "green");
+                durum.css("color", "white");
+                durum.html("Baglanti kuruldu.");
+                animation();
+            });
+
+            connection.onclose(connectionId => {
+                durum.css("background-color", "red");
+                durum.css("color", "white");
+                durum.html("Baglanti kurulamadi !");
+                animation();
+            });
+
+            $("#btnGonder").click(() => {
+                let message = $("#txtMessage").val();
+                let connectionIds = $("#connectionIds").val().split(",");
+                let groups = $("#txtGroups").val().split(",");
+                // connection.invoke("SendMessageAsync", message, connectionIds).catch(error => console.log(`Mesaj gönderilirken hata olustu. ${error}`));
+                // connection.invoke("SendMessageAsync", message, $("input[name=group]:checked").val(), connectionIds).catch(error => console.log(`Mesaj gönderilirken hata olustu. ${error}`));
+                // connection.invoke("SendMessageAsync", message, groups).catch(error => console.log(`Mesaj gönderilirken hata olustu. ${error}`));
+                connection.invoke("SendMessageAsync", message, groups[0]).catch(error => console.log(`Mesaj gönderilirken hata olustu. ${error}`));
+            });
+
+            connection.on("receiveMessage", message => {
+                $("#mesajlar").append(message + "<br>");
+            });
+
+            let _connectionId = "";
+            connection.on("getConnectionId", connectionId => {
+                _connectionId = connectionId;
+                $("#connectionId").html(`Connection Id : ${connectionId}`);
+            });
+
+            $("#btnEnterGroup").click(() => {
+                let groupName = $("input[name=group]:checked").val();
+                connection.invoke("addGroup", _connectionId, groupName).catch(error => console.log(`Mesaj gönderilirken hata olustu. ${error}`));
+            })
+
+        });
+    </script>
+</head>
+
+<body>
+    <div style="background-color: black; color:yellow" id="connectionId"></div>
+    <input type="radio" name="group" value="A"> A Group
+    <input type="radio" name="group" value="B"> B Group
+    <input type="radio" name="group" value="C"> C Group
+    <button id="btnEnterGroup">Enter the Group</button>
+    <br>
+    <div id="durum" style="display:none"></div>
+    <input placeholder="Messages" type="text" id="txtMessage">
+    <br>
+    <input placeholder="Groups" type="text" id="txtGroups">
+    <button id="btnGonder">Send</button>
+
+    <br>
+    <textarea placeholder="Connection Ids" id="connectionIds" cols="30" rows="10"></textarea>
+
+    <div id="mesajlar"></div>
+
+</body>
+
+</html>
