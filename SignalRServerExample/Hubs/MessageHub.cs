@@ -19,7 +19,7 @@ namespace SignalRServerExample.Hubs
             #endregion
             #region All
             // Server a bagli olan tum Client lar ile iletisim kurar.
-            //await Clients.All.SendAsync("receiveMessage", message);
+            await Clients.All.SendAsync("receiveMessage", message);
             #endregion
             #region Other
             // Sadece Server a bildirim gonderen Client disinda Server a bagli tum Client lar ile iletisim kurar.
@@ -54,7 +54,7 @@ namespace SignalRServerExample.Hubs
             #endregion
             #region OthersInGroup
             // Bildiride bulunan Client haricinde gruptaki tum Client lara bildiride bulunan foksiyondur.
-            await Clients.OthersInGroup(groupName).SendAsync("receiveMessage", message);
+            //await Clients.OthersInGroup(groupName).SendAsync("receiveMessage", message);
             #endregion
             #region User
 
